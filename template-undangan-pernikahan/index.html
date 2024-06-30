@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undangan Pernikahan</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .header {
+            background: url('your-frame-image-url.jpg') no-repeat center center;
+            background-size: cover;
+            height: 100vh;
+            color: #795548;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+        }
+        .header .profile-pic-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 5px solid white;
+            overflow: hidden;
+            background: url('your-flower-frame-url.png') no-repeat center center;
+            background-size: contain; /* Mengubah ke 'contain' untuk memastikan frame terlihat */
+        }
+        .header .profile-pic {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .header h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            margin-top: 20px;
+        }
+        .header h6 {
+            font-size: 1.2rem;
+        }
+        .btn-custom {
+            background-color: #795548;
+            border-color: #795548;
+            color: white;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            transition: background-color 0.3s ease;
+        }
+        .btn-custom:hover {
+            background-color: #6d4c41;
+            border-color: #6d4c41;
+        }
+        .gallery img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .floating-buttons {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .floating-buttons .btn {
+            background-color: #795548;
+            color: white;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .floating-buttons .btn:hover {
+            background-color: #6d4c41;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        .floating-buttons .btn:focus {
+            outline: none;
+        }
+        .navbar-custom {
+            background-color: #795548;
+        }
+        .navbar-custom .nav-link {
+            color: white;
+            font-size: 1rem;
+        }
+        .navbar-custom .nav-link:hover {
+            color: #f5f5f5;
+        }
+        .navbar-custom .navbar-brand {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bagian Header -->
+    <header class="header">
+        <div class="profile-pic-container">
+            <img src="your-profile-image-url.jpg" alt="Foto Pengantin" class="profile-pic">
+        </div>
+        <h1>Daniel & Desi</h1>
+        <h6>12 Desember 2024</h6>
+        <h6>09.00 WIB - 15.00 WIB</h6>
+        <h6>GOR Rajapolah, Kec. Rajapolah, Kab. Tasikmalaya</h6>
+    </header>
+
+    <!-- Bagian Detail Pernikahan -->
+    <section id="details" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Detail Acara</h2>
+                    <p>
+                        Kami dengan gembira mengundang Anda untuk merayakan hari bahagia kami. 
+                        Pernikahan kami akan dilangsungkan pada tanggal [tanggal], bertempat di [lokasi]. 
+                        Acara akan dimulai pukul [jam], dimulai dengan akad nikah dan dilanjutkan dengan resepsi. 
+                        Kami sangat berharap kehadiran Anda untuk turut serta dalam kebahagiaan kami. 
+                        Harap konfirmasi kehadiran Anda melalui tombol RSVP di bawah ini. 
+                        Terima kasih atas dukungan dan doanya.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bagian Galeri -->
+    <section id="gallery" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center">Galeri</h2>
+            <div class="row">
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 1">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 2">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 3">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 4">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 5">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 6">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 7">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 8">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 9">
+                </div>
+                <div class="col-md-4 gallery">
+                    <img src="your-profile-image-url.jpg" alt="Galeri Foto 10">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bagian Footer -->
+    <footer class="py-4 bg-dark text-white text-center">
+        <div class="container">
+            <br><br>
+            <p>&copy; 2024 lingkita.github.io</p>
+        </div>
+    </footer>
+
+    <!-- Tombol Navigasi Melayang di Bawah -->
+    <div class="floating-buttons">
+        <a href="#details" class="btn btn-custom">DETAIL</a>
+        <a href="#gallery" class="btn btn-custom">GALERI</a>
+        <a href="https://maps.app.goo.gl/ki7Bc1XD3GHLgrmV7" class="btn btn-custom">GMAPS</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
