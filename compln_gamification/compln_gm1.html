@@ -74,7 +74,7 @@
     </div>
     <div id="gameContainer">
         <div id="score">Score: 0</div>
-        <div id="timer">Time: 5</div>
+        <div id="timer">Time: 60</div>
         <div id="notification"></div>
         <canvas id="gameCanvas"></canvas>
     </div>
@@ -103,10 +103,14 @@
 
         let score = 0;
         let objects = [];
-        let timer = 5;
+        let timer = 60; // Changed to 60 seconds
         let gameRunning = false;
         let timerInterval;
         let playerName = '';
+
+        // Item and Enemy names
+        const itemNames = ['INTEGRITAS', 'PATUH', 'LAPOR', 'RAHASIA', 'NETRAL', 'CERMAT', 'JAGA', 'AKURAT', 'HORMAT', 'BELAJAR'];
+        const enemyNames = ['SUAP', 'KUASA', 'LECEH', 'PALSU', 'UNTUNG', 'KORUPSI', 'BOCOR', 'BOROS', 'ABAI', 'ANONIM'];
 
         // Upload to Google Forms (append score with name)
         async function uploadToGoogle(newScore, name) {
@@ -168,27 +172,25 @@
             }, 1000);
         }
 
-        // Create objects with unique numbers
-        function createObject(type, number) {
+        // Create objects with names
+        function createObject(type, name) {
             return {
                 x: Math.random() * (canvas.width - 100) + 50,
                 y: Math.random() * (canvas.height - 100) + 50,
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
-                width: 80,
+                width: 100, // Adjusted for longer text
                 height: 20,
                 type: type,
-                number: number
+                name: name
             };
         }
 
-        // Initialize objects with numbers 1-5
+        // Initialize objects with names
         function initObjects() {
             objects = [];
-            for (let i = 1; i <= 5; i++) {
-                objects.push(createObject('enemy', i));
-                objects.push(createObject('item', i));
-            }
+            itemNames.forEach(name => objects.push(createObject('item', name)));
+            enemyNames.forEach(name => objects.push(createObject('enemy', name)));
         }
 
         // Update objects
@@ -202,7 +204,7 @@
             });
         }
 
-        // Draw objects with numbers
+        // Draw objects with names
         function drawObjects() {
             objects.forEach(obj => {
                 ctx.fillStyle = obj.type === 'enemy' ? '#8B0000' : '#006400';
@@ -210,8 +212,7 @@
 
                 ctx.font = '20px Arial';
                 ctx.fillStyle = 'white';
-                const text = obj.type === 'enemy' ? `Enemy ${obj.number}` : `Item ${obj.number}`;
-                ctx.fillText(text, obj.x, obj.y);
+                ctx.fillText(obj.name, obj.x, obj.y);
             });
         }
 
@@ -236,7 +237,7 @@
                         playSound(800, 0.1, 'square');
                         showNotification('+10', 'green');
                         objects.splice(index, 1);
-                        objects.push(createObject('enemy', obj.number));
+                        objects.push(createObject('enemy', obj.name));
                     } else {
                         score -= 5;
                         playSound(150, 0.5, 'sawtooth');
@@ -261,7 +262,7 @@
             gameContainer.style.display = 'block';
             gameRunning = true;
             score = 0;
-            timer = 5;
+            timer = 60; // Changed to 60 seconds
             scoreDisplay.textContent = `Score: ${score}`;
             timerDisplay.textContent = `Time: ${timer}`;
             initObjects();
