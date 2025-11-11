@@ -146,7 +146,7 @@
                 const response = await fetch('https://api.github.com/gists', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `token ${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}`,
+                        'Authorization': `token ${GITHUB_TOKEN}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(gistData)
@@ -321,5 +321,6 @@
     </script>
 </body>
 </html>
+
 
 
