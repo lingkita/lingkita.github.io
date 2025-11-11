@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #ffd700; }
+            to { text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700; }
+        }
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1em;
+            color: #ccc;
+        }
+        .filter {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .filter input, .filter button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .filter input {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .filter button {
+            background: #ffd700;
+            color: #000;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .filter button:hover {
+            background: #ffed4e;
+        }
+        .leaderboard {
+            list-style: none;
+            padding: 0;
+        }
+        .leaderboard li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+            color: #fff;
+        }
+        .leaderboard li:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+        .leaderboard li:nth-child(1) { 
+            background: linear-gradient(90deg, #ffd700, #ffed4e); 
+            color: #000;
+        }
+        .leaderboard li:nth-child(2) { 
+            background: linear-gradient(90deg, #c0c0c0, #e0e0e0); 
+            color: #000;
+        }
+        .leaderboard li:nth-child(3) { 
+            background: linear-gradient(90deg, #cd7f32, #d4af37); 
+            color: #000;
+        }
+        .rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .details {
+            flex: 1;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .trophy {
+            font-size: 1.5em;
+            margin-left: 10px;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @media (max-width: 600px) {
+            .leaderboard li {
+                flex-direction: column;
+                text-align: center;
+            }
+            .rank, .score {
+                margin: 5px 0;
+            }
+            .filter {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Leaderboard Game</h1>
+        <div class="status" id="status">Memuat data...</div>
+        <div class="filter">
+            <input type="date" id="dateFilter" placeholder="Pilih Tanggal">
+            <button id="filterBtn">Filter</button>
+        </div>
+        <ul class="leaderboard" id="leaderboardList"></ul>
+    </div>
+
+    <script>
+        const dataUrl = 'https://lingkita.github.io/scores.txt';
+        let leaderboardData = [];
+        let filteredData = [];
+
+        // Fungsi untuk fetch data dari URL
+        async function fetchData() {
+            try {
+                const response = await fetch(dataUrl);
+                if (!response.ok) throw new Error('Gagal mengambil data');
+                const text = await response.text();
+                // Parse data: asumsikan format "tanggal|waktu|label|skor" per baris
+                leaderboardData = text.trim().split('\n').map(line => {
+                    const [date, time, label, score] = line.split('|');
+                    return { date: date.trim(), time: time.trim(), label: label.trim(), score: parseInt(score.trim()) };
+                }).filter(entry => !isNaN(entry.score)); // Filter entri valid
+                filteredData = [...leaderboardData];
+                document.getElementById('status').textContent = 'Data terbaru dimuat.';
+                renderLeaderboard(filteredData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('status').textContent = 'Error: Tidak bisa memuat data. Cek koneksi atau URL.';
+            }
+        }
+
+        // Fungsi untuk render leaderboard
+        function renderLeaderboard(data) {
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            data.sort((a, b) => b.score - a.score);
+            data.forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="rank">#${index + 1}</span>
+                    <div class="details">${entry.date} | ${entry.time} | ${entry.label}</div>
+                    <span class="score">${entry.score}</span>
+                    ${index < 3 ? '<span class="trophy">🏆</span>' : ''}
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        // Fetch data awal dan set interval untuk real-time (setiap 10 detik)
+        fetchData();
+        setInterval(fetchData, 10000); // 10000 ms = 10 detik
+
+        // Event listener untuk filter tanggal
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            const selectedDate = document.getElementById('dateFilter').value;
+            if (selectedDate) {
+                const [year, month, day] = selectedDate.split('-');
+                const formattedDate = `${day}-${month}-${year}`;
+                filteredData = leaderboardData.filter(entry => entry.date === formattedDate);
+            } else {
+                filteredData = [...leaderboardData];
+            }
+            renderLeaderboard(filteredData);
+        });
+    </script>
+</body>
+</html>
