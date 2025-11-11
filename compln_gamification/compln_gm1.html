@@ -30,7 +30,7 @@
         }
         canvas {
             display: block;
-            cursor: crosshair;
+            cursor: default;  /* Changed from crosshair to default (arrow) */
         }
         #score {
             position: absolute;
@@ -212,7 +212,7 @@
             });
         }
 
-        // Draw objects with button-like style
+        // Draw objects with button-like style and visual indicator (border)
         function drawObjects() {
             objects.forEach(obj => {
                 // Draw background with rounded corners
@@ -220,6 +220,11 @@
                 ctx.beginPath();
                 ctx.roundRect(obj.x - 5, obj.y - 25, obj.width + 10, obj.height + 10, 5);
                 ctx.fill();
+
+                // Draw border/outline for visual click area indicator
+                ctx.strokeStyle = '#FFFFFF';  // White border for visibility
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
                 // Draw text
                 ctx.font = '16px Arial';
@@ -229,19 +234,27 @@
             });
         }
 
-        // Check click
+        // Check click - expanded to include extra padding for easier clicking
         function isClickOnObject(mouseX, mouseY, obj) {
-            const centerX = obj.x + obj.width / 2;
-            const centerY = obj.y + obj.height / 2;
-            const dist = Math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2);
-            return dist < 50;
+            // The visual object is drawn at (obj.x - 5, obj.y - 25) with width obj.width + 10, height obj.height + 10
+            // Adding extra 10px padding around the visual area for easier clicking
+            const padding = 10;
+            const objLeft = obj.x - 5 - padding;
+            const objRight = obj.x + obj.width + 5 + padding;
+            const objTop = obj.y - 25 - padding;
+            const objBottom = obj.y - 15 + padding;  // obj.y - 25 + (obj.height + 10) = obj.y - 15
+
+            return mouseX >= objLeft && mouseX <= objRight && mouseY >= objTop && mouseY <= objBottom;
         }
 
         // Handle clicks
         canvas.addEventListener('click', (e) => {
             if (!gameRunning) return;
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
+
+            // Get mouse position relative to canvas
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
 
             objects.forEach((obj, index) => {
                 if (isClickOnObject(mouseX, mouseY, obj)) {
