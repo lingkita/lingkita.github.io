@@ -106,9 +106,9 @@
         let gameRunning = false;
         let timerInterval;
 
-        // GitHub sync setup (replace with your token)
-        const GITHUB_TOKEN = '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'; // Ganti dengan token GitHub Anda
-        const GITHUB_USERNAME = 'lingkita'; // Ganti dengan username GitHub Anda
+        // GitHub sync setup (updated with your credentials)
+        const GITHUB_TOKEN = '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';
+        const GITHUB_USERNAME = 'lingkita';
 
         // Web Audio API for sounds
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -130,8 +130,14 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
 
-        // Sync score to GitHub (create Gist)
+        // Sync score to GitHub (create Gist) with better error handling
         async function syncScoreToGitHub(finalScore) {
+            if (GITHUB_TOKEN === 'YOUR_GITHUB_TOKEN' || !GITHUB_TOKEN) {
+                console.log('GitHub token not set. Saving to localStorage.');
+                localStorage.setItem('gameScore', finalScore);
+                return;
+            }
+
             const gistData = {
                 description: 'Game Score',
                 public: true,
@@ -154,9 +160,12 @@
 
                 if (response.ok) {
                     console.log('Score synced to GitHub!');
+                } else if (response.status === 401) {
+                    console.error('Failed to sync to GitHub: 401 Unauthorized. Check your GitHub token and ensure it has "gist" scope.');
+                    console.log('Saving to localStorage as fallback.');
+                    localStorage.setItem('gameScore', finalScore);
                 } else {
                     console.error('Failed to sync to GitHub:', response.status);
-                    // Fallback to localStorage
                     localStorage.setItem('gameScore', finalScore);
                     console.log('Score saved to localStorage as fallback.');
                 }
@@ -183,7 +192,7 @@
                 y: Math.random() * (canvas.height - 100) + 50,
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
-                width: 80, // Adjusted for longer text
+                width: 80,
                 height: 20,
                 type: type,
                 number: number
@@ -245,7 +254,7 @@
                             playSound(800, 0.1, 'square');
                             showNotification('+10', 'green');
                             objects.splice(index, 1);
-                            objects.push(createObject('enemy', obj.number)); // Respawn with same number
+                            objects.push(createObject('enemy', obj.number));
                         } else {
                             score -= 5;
                             playSound(150, 0.5, 'sawtooth');
@@ -257,7 +266,7 @@
                             playSound(600, 0.2);
                             showNotification('+10', 'green');
                             objects.splice(index, 1);
-                            objects.push(createObject('item', obj.number)); // Respawn with same number
+                            objects.push(createObject('item', obj.number));
                         } else {
                             score -= 5;
                             playSound(150, 0.5, 'sawtooth');
@@ -321,6 +330,3 @@
     </script>
 </body>
 </html>
-
-
-
