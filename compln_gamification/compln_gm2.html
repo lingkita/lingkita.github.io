@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runner Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        #gameCanvas {
+            border: 2px solid #000;
+            background-color: #87CEEB;
+            max-width: 100%;
+            height: auto;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #info {
+            margin-top: 10px;
+        }
+        #title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #timer, #weaponPower {
+            font-size: 18px;
+        }
+        #finalScore {
+            font-size: 20px;
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">Runner Game</div>
+    <canvas id="gameCanvas" width="400" height="300"></canvas>
+    <div id="controls">
+        <button id="leftBtn">Left</button>
+        <button id="shootBtn">Shoot</button>
+        <button id="rightBtn">Right</button>
+    </div>
+    <div id="info">
+        <div id="timer">Time: 0s</div>
+        <div id="weaponPower">Weapon Power: 10</div>
+        <div id="finalScore">Final Score: 0s</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const shootBtn = document.getElementById('shootBtn');
+        const timerDiv = document.getElementById('timer');
+        const weaponPowerDiv = document.getElementById('weaponPower');
+        const finalScoreDiv = document.getElementById('finalScore');
+
+        // Game variables
+        let player = { x: 100, y: 250, width: 50, height: 50, lane: 0 }; // Player closer to bottom, 2 lanes
+        let speed = 2;
+        let weaponPower = 10;
+        let time = 0;
+        let gameRunning = true;
+        let enemies = [];
+        let upgrades = [];
+        let bullets = [];
+        let enemyCount = 0;
+        let maxEnemies = 5;
+        let finishLine = false;
+
+        // Lane positions (2 lanes)
+        const lanes = [100, 250];
+
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            time += 1/60; // Assuming 60 FPS
+            timerDiv.textContent = `Time: ${time.toFixed(2)}s`;
+
+            // Move enemies and upgrades down (simulate forward movement)
+            enemies.forEach(enemy => {
+                if (enemy.y < player.y - enemy.height - 20) { // Stop with gap above player
+                    enemy.y += speed;
+                }
+                if (enemy.y > canvas.height) {
+                    enemies.splice(enemies.indexOf(enemy), 1);
+                }
+            });
+
+            upgrades.forEach(upgrade => {
+                upgrade.y += speed;
+                if (upgrade.y > canvas.height) {
+                    upgrades.splice(upgrades.indexOf(upgrade), 1);
+                }
+            });
+
+            // Move bullets up
+            bullets.forEach(bullet => {
+                bullet.y -= 10;
+                if (bullet.y < 0) {
+                    bullets.splice(bullets.indexOf(bullet), 1);
+                }
+            });
+
+            // Check collisions
+            bullets.forEach(bullet => {
+                enemies.forEach(enemy => {
+                    if (bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y) {
+                        enemy.health -= weaponPower;
+                        bullets.splice(bullets.indexOf(bullet), 1);
+                        if (enemy.health <= 0) {
+                            enemies.splice(enemies.indexOf(enemy), 1);
+                            enemyCount++;
+                            if (enemyCount >= maxEnemies) {
+                                finishLine = true;
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Check player collision with upgrades
+            upgrades.forEach(upgrade => {
+                if (player.x < upgrade.x + upgrade.width && player.x + player.width > upgrade.x &&
+                    player.y < upgrade.y + upgrade.height && player.y + player.height > upgrade.y) {
+                    if (upgrade.type === 'upgrade') {
+                        weaponPower += 5;
+                    } else {
+                        weaponPower = Math.max(1, weaponPower - 5);
+                    }
+                    weaponPowerDiv.textContent = `Weapon Power: ${weaponPower}`;
+                    upgrades.splice(upgrades.indexOf(upgrade), 1);
+                }
+            });
+
+            // Spawn enemies and upgrades alternately
+            if (Math.random() < 0.01 && enemies.length < 1 && !finishLine) {
+                let lane = Math.floor(Math.random() * 2);
+                enemies.push({ x: lanes[lane], y: 0, width: 50, height: 50, health: 1000 });
+            } else if (Math.random() < 0.01 && upgrades.length < 1 && !finishLine) {
+                let lane = Math.floor(Math.random() * 2);
+                let type = Math.random() < 0.5 ? 'upgrade' : 'downgrade';
+                upgrades.push({ x: lanes[lane], y: 0, width: 30, height: 30, type: type });
+            }
+
+            // Check if player reaches finish (after defeating all enemies)
+            if (finishLine && enemies.length === 0) {
+                gameRunning = false;
+                finalScoreDiv.textContent = `Final Score: ${time.toFixed(2)}s`;
+                finalScoreDiv.style.display = 'block';
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw lanes (2 lanes)
+            ctx.strokeStyle = '#000';
+            for (let i = 0; i < 2; i++) {
+                ctx.beginPath();
+                ctx.moveTo(lanes[i] + 25, 0);
+                ctx.lineTo(lanes[i] + 25, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw player
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw enemies
+            ctx.fillStyle = 'red';
+            enemies.forEach(enemy => {
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                ctx.fillStyle = 'white';
+                ctx.fillText(enemy.health, enemy.x + 10, enemy.y + 30);
+                ctx.fillStyle = 'red';
+            });
+
+            // Draw upgrades with +5 or -5
+            upgrades.forEach(upgrade => {
+                ctx.fillStyle = upgrade.type === 'upgrade' ? 'green' : 'orange';
+                ctx.fillRect(upgrade.x, upgrade.y, upgrade.width, upgrade.height);
+                ctx.fillStyle = 'white';
+                ctx.fillText(upgrade.type === 'upgrade' ? '+5' : '-5', upgrade.x + 5, upgrade.y + 20);
+                ctx.fillStyle = upgrade.type === 'upgrade' ? 'green' : 'orange';
+            });
+
+            // Draw bullets
+            ctx.fillStyle = 'yellow';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Draw finish line (after all enemies defeated)
+            if (finishLine) {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, 10);
+                ctx.fillStyle = 'white';
+                ctx.fillText('FINISH', 150, 20);
+            }
+        }
+
+        // Controls
+        leftBtn.addEventListener('click', () => {
+            if (player.lane > 0) {
+                player.lane--;
+                player.x = lanes[player.lane];
+            }
+        });
+
+        rightBtn.addEventListener('click', () => {
+            if (player.lane < 1) {
+                player.lane++;
+                player.x = lanes[player.lane];
+            }
+        });
+
+        shootBtn.addEventListener('click', () => {
+            bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
+        });
+
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
