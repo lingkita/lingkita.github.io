@@ -103,14 +103,14 @@
 
         let score = 0;
         let objects = [];
-        let timer = 60; // Changed to 60 seconds
+        let timer = 60;
         let gameRunning = false;
         let timerInterval;
         let playerName = '';
 
         // Item and Enemy names
-        const itemNames = ['INTEGRITAS', 'PATUH', 'LAPOR', 'RAHASIA', 'NETRAL', 'CERMAT', 'JAGA', 'AKURAT', 'HORMAT', 'BELAJAR'];
-        const enemyNames = ['SUAP', 'KUASA', 'LECEH', 'PALSU', 'UNTUNG', 'KORUPSI', 'BOCOR', 'BOROS', 'ABAI', 'ANONIM'];
+        const itemNames = ['Jaga Integritas', 'Patuhi Aturan', 'Laporkan Pelanggaran', 'Jaga Rahasia', 'Hindari Benturan'];
+        const enemyNames = ['Suap', 'Salahgunakan Wewenang', 'Memalsukan Data', 'Ambil Keuntungan Pribadi', 'Terlibat KKN'];
 
         // Upload to Google Forms (append score with name)
         async function uploadToGoogle(newScore, name) {
@@ -172,17 +172,24 @@
             }, 1000);
         }
 
+        // Random color generator
+        function getRandomColor() {
+            const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFF5', '#F5FF33', '#FF8C33', '#8CFF33', '#FF338C'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
         // Create objects with names
         function createObject(type, name) {
             return {
-                x: Math.random() * (canvas.width - 100) + 50,
-                y: Math.random() * (canvas.height - 100) + 50,
+                x: Math.random() * (canvas.width - 200 - 10) + 5,  // Adjusted to fit within canvas bounds
+                y: Math.random() * (canvas.height - 30) + 25,     // Adjusted to fit within canvas bounds
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
-                width: 100, // Adjusted for longer text
+                width: 200, // Adjusted for longer text
                 height: 20,
                 type: type,
-                name: name
+                name: name,
+                color: getRandomColor()
             };
         }
 
@@ -199,20 +206,26 @@
                 obj.x += obj.vx;
                 obj.y += obj.vy;
 
-                if (obj.x <= 0 || obj.x >= canvas.width - obj.width) obj.vx *= -1;
-                if (obj.y <= 0 || obj.y >= canvas.height - obj.height) obj.vy *= -1;
+                // Bounce off edges based on the actual drawn rectangle (roundRect bounds)
+                if (obj.x - 5 <= 0 || obj.x + obj.width + 5 >= canvas.width) obj.vx *= -1;
+                if (obj.y - 25 <= 0 || obj.y + 5 >= canvas.height) obj.vy *= -1;
             });
         }
 
-        // Draw objects with names
+        // Draw objects with button-like style
         function drawObjects() {
             objects.forEach(obj => {
-                ctx.fillStyle = obj.type === 'enemy' ? '#8B0000' : '#006400';
-                ctx.fillRect(obj.x - 5, obj.y - 20, obj.width + 10, obj.height + 5);
+                // Draw background with rounded corners
+                ctx.fillStyle = obj.color;
+                ctx.beginPath();
+                ctx.roundRect(obj.x - 5, obj.y - 25, obj.width + 10, obj.height + 10, 5);
+                ctx.fill();
 
-                ctx.font = '20px Arial';
-                ctx.fillStyle = 'white';
-                ctx.fillText(obj.name, obj.x, obj.y);
+                // Draw text
+                ctx.font = '16px Arial';
+                ctx.fillStyle = 'black';
+                ctx.textAlign = 'center';
+                ctx.fillText(obj.name, obj.x + obj.width / 2, obj.y);
             });
         }
 
@@ -232,12 +245,12 @@
 
             objects.forEach((obj, index) => {
                 if (isClickOnObject(mouseX, mouseY, obj)) {
-                    if (obj.type === 'enemy') {
+                    if (obj.type === 'item') {
                         score += 10;
                         playSound(800, 0.1, 'square');
                         showNotification('+10', 'green');
                         objects.splice(index, 1);
-                        objects.push(createObject('enemy', obj.name));
+                        objects.push(createObject('item', obj.name));
                     } else {
                         score -= 5;
                         playSound(150, 0.5, 'sawtooth');
@@ -262,7 +275,7 @@
             gameContainer.style.display = 'block';
             gameRunning = true;
             score = 0;
-            timer = 60; // Changed to 60 seconds
+            timer = 60;
             scoreDisplay.textContent = `Score: ${score}`;
             timerDisplay.textContent = `Time: ${timer}`;
             initObjects();
