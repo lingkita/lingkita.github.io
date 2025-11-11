@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shooting Game 11:17</title>
+    <title>Simple Shooting Game</title>
     <style>
         body {
             margin: 0;
@@ -69,6 +69,7 @@
 <body>
     <div id="startScreen">
         <h1>Simple Shooting Game</h1>
+        <input type="text" id="nameInput" placeholder="Enter your name" style="margin: 10px; padding: 5px;">
         <button id="startButton">Start</button>
     </div>
     <div id="gameContainer">
@@ -89,6 +90,7 @@
         const endScreen = document.getElementById('endScreen');
         const startButton = document.getElementById('startButton');
         const restartButton = document.getElementById('restartButton');
+        const nameInput = document.getElementById('nameInput');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score');
@@ -100,120 +102,40 @@
         canvas.height = window.innerHeight;
 
         let score = 0;
-        let mode = 'pistol';
         let objects = [];
-        let timer = 5; // Changed to 5 seconds
+        let timer = 5;
         let gameRunning = false;
         let timerInterval;
+        let playerName = '';
 
-        // GitHub sync setup (updated to upload to repo)
-        const token = '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'; // Updated with new token
-        const owner = 'lingkita';
-        const repo = 'lingkita.github.io'; // Changed to new repo name
-        const filePath = 'scores.txt';
+        // Upload to Google Forms (append score with name)
+        async function uploadToGoogle(newScore, name) {
+            const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfWirPhtTbcTKTEd_HQcGI6W-I4Tp8pLrWLHI1j_wrCdtHvxQ/formResponse';
+            const ID_INPUT_NAMA = 'entry.353812838'; // Ganti dengan ID input nama Anda
+            const ID_INPUT_SKOR = 'entry.643528774';
 
-        // Function to encode string to base64 (fixed)
-        function toBase64(str) {
-            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                return String.fromCharCode('0x' + p1);
-            }));
-        }
+            const formData = new FormData();
+            formData.append(ID_INPUT_NAMA, name);
+            formData.append(ID_INPUT_SKOR, newScore);
 
-        // Function to decode base64 to string
-        function fromBase64(base64) {
-            return decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-        }
-
-        // Get current date and time in Jakarta/Bangkok timezone (UTC+7)
-        function getJakartaTime() {
-            const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const jakartaTime = new Date(utc + (7 * 3600000)); // UTC+7
-            const day = String(jakartaTime.getDate()).padStart(2, '0');
-            const month = String(jakartaTime.getMonth() + 1).padStart(2, '0');
-            const year = jakartaTime.getFullYear();
-            const hours = String(jakartaTime.getHours()).padStart(2, '0');
-            const minutes = String(jakartaTime.getMinutes()).padStart(2, '0');
-            return `${day}-${month}-${year}|${hours}:${minutes}`;
-        }
-
-        // Upload to GitHub (append score as log with timestamp)
-        async function uploadToGitHub(newScore) {
-            const apiURL = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-
-            let existingContent = '';
-            let sha = null;
-
-            // Get existing file content
-            try {
-                const getResponse = await fetch(apiURL, {
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-                if (getResponse.ok) {
-                    const fileData = await getResponse.json();
-                    existingContent = fromBase64(fileData.content);
-                    sha = fileData.sha;
-                } else if (getResponse.status === 404) {
-                    // File does not exist, start with empty
-                } else {
-                    throw new Error(`GET failed: ${getResponse.status}`);
-                }
-            } catch (error) {
-                console.error('Error getting file:', error);
-                alert('Gagal mendapatkan file dari GitHub.');
-                localStorage.setItem('gameScore', newScore);
-                return;
-            }
-
-            // Append new score with timestamp and new line
-            const timestamp = getJakartaTime();
-            const logEntry = `${timestamp}|Final Score|${newScore}`;
-            const updatedContent = existingContent + (existingContent ? '\n' : '') + logEntry;
-            const base64Content = toBase64(updatedContent);
-
-            const data = {
-                message: "Append score to log with timestamp",
-                content: base64Content
-            };
-            if (sha) {
-                data.sha = sha;
-            }
-
-            fetch(apiURL, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+            fetch(GOOGLE_FORM_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message === 'Bad credentials') {
-                    console.error('Bad credentials: Check your GitHub token.');
-                    alert('Token GitHub tidak valid. Periksa token Anda.');
-                    localStorage.setItem('gameScore', newScore);
-                } else {
-                    console.log('Upload berhasil:', data);
-                    alert('Score berhasil ditambahkan ke log di GitHub!');
-                }
+            .then(response => {
+                console.log('Skor berhasil dikirim ke Google Sheet (Diasumsikan berhasil).');
+                alert('Skor Anda telah dicatat!');
             })
             .catch(error => {
-                console.error('Error saat upload:', error);
-                alert('Gagal mengirim score ke GitHub.');
-                localStorage.setItem('gameScore', newScore);
+                console.error('Terjadi kesalahan saat mengirim skor:', error);
+                alert('Gagal mencatat skor.');
             });
         }
 
-        // Sync score to GitHub (append to log)
-        function syncScoreToGitHub(finalScore) {
-            uploadToGitHub(finalScore);
+        // Sync score to Google (with name)
+        function syncScoreToGoogle(finalScore, name) {
+            uploadToGoogle(finalScore, name);
         }
 
         // Web Audio API for sounds
@@ -309,47 +231,29 @@
 
             objects.forEach((obj, index) => {
                 if (isClickOnObject(mouseX, mouseY, obj)) {
-                    if (mode === 'pistol') {
-                        if (obj.type === 'enemy') {
-                            score += 10;
-                            playSound(800, 0.1, 'square');
-                            showNotification('+10', 'green');
-                            objects.splice(index, 1);
-                            objects.push(createObject('enemy', obj.number));
-                        } else {
-                            score -= 5;
-                            playSound(150, 0.5, 'sawtooth');
-                            showNotification('-5', 'red');
-                        }
-                    } else if (mode === 'hand') {
-                        if (obj.type === 'item') {
-                            score += 10;
-                            playSound(600, 0.2);
-                            showNotification('+10', 'green');
-                            objects.splice(index, 1);
-                            objects.push(createObject('item', obj.number));
-                        } else {
-                            score -= 5;
-                            playSound(150, 0.5, 'sawtooth');
-                            showNotification('-5', 'red');
-                        }
+                    if (obj.type === 'enemy') {
+                        score += 10;
+                        playSound(800, 0.1, 'square');
+                        showNotification('+10', 'green');
+                        objects.splice(index, 1);
+                        objects.push(createObject('enemy', obj.number));
+                    } else {
+                        score -= 5;
+                        playSound(150, 0.5, 'sawtooth');
+                        showNotification('-5', 'red');
                     }
                 }
             });
             scoreDisplay.textContent = `Score: ${score}`;
         });
 
-        // Toggle mode
-        canvas.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            if (!gameRunning) return;
-            mode = mode === 'pistol' ? 'hand' : 'pistol';
-            canvas.style.cursor = mode === 'pistol' ? 'crosshair' : 'grab';
-        });
-
         // Start game
         startButton.addEventListener('click', () => {
-            // Resume audio context for user interaction
+            playerName = nameInput.value.trim();
+            if (!playerName) {
+                alert('Please enter your name.');
+                return;
+            }
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
             }
@@ -357,7 +261,7 @@
             gameContainer.style.display = 'block';
             gameRunning = true;
             score = 0;
-            timer = 5; // Changed to 5 seconds
+            timer = 5;
             scoreDisplay.textContent = `Score: ${score}`;
             timerDisplay.textContent = `Time: ${timer}`;
             initObjects();
@@ -371,7 +275,7 @@
                     finalScore.textContent = `Final Score: ${score}`;
                     endScreen.style.display = 'block';
                     gameContainer.style.display = 'none';
-                    syncScoreToGitHub(score);
+                    syncScoreToGoogle(score, playerName);
                 }
             }, 1000);
 
@@ -382,6 +286,7 @@
         restartButton.addEventListener('click', () => {
             endScreen.style.display = 'none';
             startScreen.style.display = 'block';
+            nameInput.value = '';
         });
 
         // Game loop
