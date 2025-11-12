@@ -108,9 +108,25 @@
         let timerInterval;
         let playerName = '';
 
-        // Item and Enemy names
-        const itemNames = ['Jaga Integritas', 'Patuhi Aturan', 'Laporkan Pelanggaran', 'Jaga Rahasia', 'Hindari Benturan'];
-        const enemyNames = ['Suap', 'Salahgunakan Wewenang', 'Memalsukan Data', 'Ambil Keuntungan Pribadi', 'Terlibat KKN'];
+        // Item and Enemy names (updated lists)
+        const itemNames = ['Jaga Integritas', 'Patuhi Aturan', 'Laporkan Pelanggaran', 'Jaga Rahasia', 'Hindari Benturan', 'Speak Up', 'Transparansi', 'Respect', 'Compliance', 'Tolak Hadiah', 'Jujur'];
+        const enemyNames = ['Suap', 'Salahgunakan Wewenang', 'Manipulasi Data', 'Ambil Keuntungan Pribadi', 'Korupsi', 'Terima Gratifikasi', 'Curang', 'Bocorkan informasi', 'Mark-up harga', 'Laporan palsu', 'terima imbalan', 'Langgar prosedur'];
+
+        // Function to get random unique items from array
+        function getRandomUnique(array, count) {
+            const shuffled = array.slice().sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        // Function to get random item name
+        function getRandomItemName() {
+            return itemNames[Math.floor(Math.random() * itemNames.length)];
+        }
+
+        // Function to get random enemy name
+        function getRandomEnemyName() {
+            return enemyNames[Math.floor(Math.random() * enemyNames.length)];
+        }
 
         // Upload to Google Forms (append score with name)
         async function uploadToGoogle(newScore, name) {
@@ -193,11 +209,13 @@
             };
         }
 
-        // Initialize objects with names
+        // Initialize objects with 4 random unique items and 4 random unique enemies
         function initObjects() {
             objects = [];
-            itemNames.forEach(name => objects.push(createObject('item', name)));
-            enemyNames.forEach(name => objects.push(createObject('enemy', name)));
+            const selectedItems = getRandomUnique(itemNames, 4);
+            const selectedEnemies = getRandomUnique(enemyNames, 4);
+            selectedItems.forEach(name => objects.push(createObject('item', name)));
+            selectedEnemies.forEach(name => objects.push(createObject('enemy', name)));
         }
 
         // Update objects
@@ -263,11 +281,13 @@
                         playSound(800, 0.1, 'square');
                         showNotification('+10', 'green');
                         objects.splice(index, 1);
-                        objects.push(createObject('item', obj.name));
+                        objects.push(createObject('item', getRandomItemName()));
                     } else {
                         score -= 5;
                         playSound(150, 0.5, 'sawtooth');
                         showNotification('-5', 'red');
+                        objects.splice(index, 1);
+                        objects.push(createObject('enemy', getRandomEnemyName()));
                     }
                 }
             });
