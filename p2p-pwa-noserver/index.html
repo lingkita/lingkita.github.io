@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P PWA No-Server</title>
+    <link rel="manifest" href="data:application/manifest+json,{'name':'P2P Chat','short_name':'P2PChat','start_url':'.','display':'standalone','background_color':'#ffffff','theme_color':'#007bff'}">
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f4f4f9; }
+        #chat { height: 300px; border: 1px solid #ccc; overflow-y: scroll; background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+        textarea { width: 100%; height: 60px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ddd; }
+        .controls { display: flex; flex-direction: column; gap: 10px; }
+        button { cursor: pointer; padding: 10px; border: none; border-radius: 5px; background: #007bff; color: white; }
+        .status { font-size: 0.8em; color: #666; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>P2P No-Server Chat</h2>
+    <div id="status" class="status">Status: Menunggu inisialisasi...</div>
+    
+    <div id="chat"></div>
+    
+    <textarea id="messageInput" placeholder="Ketik pesan..."></textarea>
+    
+    <div class="controls">
+        <button onclick="createOffer()">1. Buat Undangan (Offer)</button>
+        <button onclick="acceptAnswer()">2. Tempel Jawaban (Accept Answer)</button>
+        <button onclick="sendMessage()" style="background: #28a745;">3. Kirim Pesan</button>
+    </div>
+
+    <script>
+        // --- 1. SERVICE WORKER (Membuatnya jadi PWA Offline) ---
+        const swCode = `
+            self.addEventListener('install', e => e.waitUntil(caches.open('p2p-v1').then(c => c.addAll(['/']))));
+            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+        `;
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const swUrl = URL.createObjectURL(blob);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swUrl);
+        }
+
+        // --- 2. LOGIKA WEBRTC (Komunikasi Tanpa Server) ---
+        let peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:1902c' }] });
+        let dataChannel;
+
+        // Setup listener untuk pesan masuk
+        peerConnection.ondatachannel = (event) => {
+            dataChannel = event.channel;
+            setupChannelEvents();
+        };
+
+        function setupChannelEvents() {
+            dataChannel.onopen = () => updateStatus("Terhubung secara P2P!");
+            dataChannel.onmessage = (e) => appendChat("Teman: " + e.data);
+        }
+
+        async function createOffer() {
+            dataChannel = peerConnection.createDataChannel("chat");
+            setupChannelEvents();
+            
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            
+            // Di dunia nyata, ini dikirim lewat server. 
+            // Di sini, kamu harus menyalin kode ini ke temanmu secara manual.
+            prompt("Salin kode Offer ini dan berikan ke teman:", JSON.stringify(offer));
+            updateStatus("Menunggu Answer dari teman...");
+        }
+
+        async function acceptAnswer() {
+            const remoteDesc = prompt("Tempel kode (Offer/Answer) dari teman di sini:");
+            if (!remoteDesc) return;
+            
+            const desc = JSON.parse(remoteDesc);
+            await peerConnection.setRemoteDescription(desc);
+
+            if (desc.type === "offer") {
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                prompt("Salin Answer ini dan berikan kembali ke pembuat Offer:", JSON.stringify(answer));
+            }
+        }
+
+        // Penanganan kandidat jalur koneksi (ICE)
+        peerConnection.onicecandidate = (event) => {
+            if (!event.candidate) {
+                console.log("Semua kandidat ICE telah dikumpulkan.");
+            }
+        };
+
+        // --- 3. UI HELPER ---
+        function sendMessage() {
+            const msg = document.getElementById("messageInput").value;
+            if (dataChannel && dataChannel.readyState === "open") {
+                dataChannel.send(msg);
+                appendChat("Saya: " + msg);
+                document.getElementById("messageInput").value = "";
+            } else {
+                alert("Belum terhubung! Pastikan langkah 1 & 2 selesai.");
+            }
+        }
+
+        function appendChat(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            document.getElementById("chat").appendChild(div);
+        }
+
+        function updateStatus(text) {
+            document.getElementById("status").textContent = "Status: " + text;
+        }
+    </script>
+</body>
+</html>
